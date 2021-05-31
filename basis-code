@@ -1,0 +1,324 @@
+def start():
+	global name
+	print('I am Otto the robo-advisor !')
+	name = input("What's your name? ")
+	print("Nice to meet you " + name + " !")
+	return name
+def RiskWilligness():
+	global seek_stability, exp_inv, sport_risk, porfolio_decline, know_fin, RiskWilligness_score
+	print("I will now ask you questions regarding your willigness to take risks, this information will help me find the right investment for you ")
+	
+	seek_stability = int(input("From 1 to 10, how comfortable Would you feel if your profolio looses 20% of value in one day ? \n 1 = not comfortable at all \n 10 = very comfortable \n Enter your answer here: "))
+	exp_inv = str(input("Have you already invested in the past ? (yes / no) "))
+	if exp_inv == 'yes':
+		exp_inv_nmb = 10
+	else:
+		exp_inv_nmb = 0
+
+	sport_risk = int(input("From 1 to 10, how much do you like high risk sports such as boxing, free jump, rock climbing? \n 1 = not at all \n 10 = I like a lot \n Enter your answer here: "))
+	porfolio_decline = int(input("From 1 to 10, how comfortable are you if your portfolio's value declines by 5%? \n 1 = not comfortable at all \n 10 = very comfortable \n Enter your answer here: "))
+	know_fin = str(input("Are you currently working in finance, majored in finance at university or passed a professional examination such as the CFA? (yes / no) "))
+	if know_fin == 'yes':
+		know_fin_nmb = 10 
+	else:
+		know_fin_nmb = 0
+	
+	RiskWilligness_score = (5* porfolio_decline + 3*seek_stability + 2*exp_inv_nmb + sport_risk + know_fin_nmb)/120
+
+def RiskCapability():
+
+	global age, age_score, income, income_score, capital, capital_score, inv_hor, inv_hor_score, expenses, income_exp_ratio, income_exp_ratio_score, kids_score, income_security, goal, RiskCapability_score
+	print ("Now your capacity to take risks will be assessed: ")
+	
+	age = int(input("Please enter your age: "))
+	if age > 50:
+		age_score = 0
+	elif age <=50 and age > 30:
+		age_score = 10
+	else:
+		age_score = 15
+	
+	income = int(input("Please	enter your average income in the last 3 years: "))
+	if income > 150000:
+		income_score = 15
+	elif income > 100000 and income <= 150000:
+		income_score = 10
+	else:
+		income_score = 0
+			
+	capital = int(input("Please enter the total value of your investing capital: "))
+	if capital > 1000000:
+		capital_score = 15
+	elif capital > 200000 and capital <= 1000000:
+		capital_score = 10 
+	else:
+		capital_score = 0
+		
+	inv_hor = int(input("Please enter your investment horizon in years: "))
+	if inv_hor > 20:
+		inv_hor_score = 15
+	elif inv_hor > 10 and inv_hor <=20:
+		inv_hor_score = 10 
+	else: 
+		inv_hor_score = 0
+			
+	expenses = int(input("Please enter the average of your yearly expenses in the last 3 years: "))
+	income_exp_ratio = income / expenses
+	if income_exp_ratio > 2:
+		income_exp_ratio_score = 15
+	elif income_exp_ratio <=2 and income_exp_ratio> 1.5:
+		income_exp_ratio_score = 10
+	else:
+		income_exp_ratio_score = 0
+	
+	kids = str(input("Do you have kids or other persons under your financial responsibility? (yes/no) "))
+	if kids == 'yes':
+		kids_nmb = int(input("How many persons? "))
+		if income_exp_ratio / kids_nmb > 1:
+			kids_score = 10
+		else: 
+			kids_score = 0
+	else: 
+		kids_score = 15 
+	
+	income_security = int(input("From 1 to 10, how secure is your main source of income? \n 1 = not secure at all \n 10 = very secure \n enter your answer here: "))
+	
+	goal = str(input("Your investment goal is to grow your capital or to gain a constant income or a mix of both? \n answer one of the followings: growth / income / mix \n answer here: "))
+		#need to finish this one : should lead to a specific equity/bond mix
+			
+			
+	RiskCapability_score = (3*kids_score + 2*income_exp_ratio_score + 2*inv_hor_score + 2*income_security + age_score + income_score + capital_score) / 170
+			
+			
+			
+
+def RiskScore():
+	global risk_score 
+	risk_score = 0.3 * RiskWilligness_score + 0.7 * RiskCapability_score
+	print("Your risk score is {:0.2f} %, the higher the more risk you can take".format(risk_score*100))
+	
+def InvGoals(): 
+	print("Now I will ask you some questions regarding your investment goals")
+	global current_value,forward_value, i
+	current_value = int(input("How much is your starting capital ? "))
+	#ask about forward_value only if previously answered wants growth as objective
+	forward_value = int(input("How much do you want to have after " + str(inv_hor) + " years ? "))
+
+	print("alright now I will calculate your compounded rate")
+
+	i = ((forward_value/current_value)**(1/inv_hor)-1 )*100
+
+	print("you will need to invest at a (compounded) rate of: {:0.2f}%! good luck... ".format(i)) 
+	print("let's find the right rates and investments for you.") 
+		
+	
+	return inv_hor,current_value,forward_value
+
+
+	
+def InvDecision(): 
+	global rate, rate_mid, rate_high, fwd_value_low, fwd_value_high,fwd_value_mid
+	Treasury_Yields = {"1Y": 0.0256, "2Y":0.028, "5Y":0.0295, "10Y": 0.0306, "30Y": 0.032}
+	#risk free rate for your inv_hor (formula found: https://mycurvefit.com/)
+	rate = 0.03409515 + (-5718.45 - 0.03409515)/(1 + (inv_hor/1.596949e-15)**0.3942742)
+	rate_mid = rate + 0.02
+	rate_high = rate + 0.05
+	
+	print("The risk free rate for a " + str(inv_hor) + " years investment is: {:0.2f}%".format(rate*100))
+	if risk_score <= 0.33:
+		fwd_value_low = current_value * (1+rate)**inv_hor
+		print("Because previously we determined that you should not take risks, you should invest only in treasury bonds, for you that means because you have a " + str(inv_hor) + " years investment horizon, you should expect a return of {:0.2f}%.".format(rate*100))
+		print("Furthermore, at this recommended rate, your value after "+str(inv_hor)+" years will rather be around: {:0.2f}".format(fwd_value_low))
+	elif risk_score > 0.33 and risk_score <= 0.66:
+		fwd_value_mid = current_value * (1+rate_mid)**inv_hor
+		print("Because previously we detemined that you can take moderate risk, you can get returns up to 2% higher than treasury bonds, thus around: {:0.2f}%.".format(rate_mid*100))
+		print("Furthermore, at this recommended rate, your value after "+str(inv_hor)+" years will rather be around: {:0.2f}".format(fwd_value_mid))
+	else:
+		fwd_value_high = current_value * (1+rate_high)**inv_hor
+		print("Because we previously determined that you can take a lot of risks, you can get returns up to 5% higher than treasury bonds, thus around: {:0.2f}%.".format(rate_high*100))
+		print("Furthermore, at this recommended rate, your value after "+str(inv_hor)+" years will rather be around: {:0.2f}".format(fwd_value_high))
+	
+
+def OptimalEtf():
+	import numpy as np 
+	import pandas as pd
+	
+	# etf_ret_var : average of yearly returns and variances of the last 5 years  of a selection of ETF 
+	etf_ret_var_dict = {'avg_ret': {'asipa': 0.06785641387494892,
+  'bnd': 0.018184838987664445,
+  'cemb': 0.031337952901946825,
+  'chie': 0.0006688652558223985,
+  'chii': 0.09170790696340542,
+  'chim': 0.13120481960560015,
+  'chiq': 0.0921520138452897,
+  'chix': 0.10719089212679773,
+  'cny': 0.026585009898846594,
+  'cqqq': 0.24295413053520676,
+  'cxse': 0.12526314714014147,
+  'cyb': 0.009718976441500722,
+  'dbc': -0.0842922300668322,
+  'dsum': 0.014940933190058134,
+  'ecns': 0.10661775400176876,
+  'eem': 0.06013356286367755,
+  'emhy': 0.036531575202428966,
+  'exxuf': 0.11082683399268926,
+  'fxi': 0.08270997901803401,
+  'gld': -0.051589881524209805,
+  'gxc': 0.1238958365202744,
+  'hao': 0.10399799560067566,
+  'hyg': 0.0419043185886115,
+  'ief': 0.014781747864330614,
+  'iemg': 0.06307198982035364,
+  'jnk': 0.039772956484249625,
+  'lqd': 0.034790182626880384,
+  'pcy': 0.03930799514480504,
+  'pek': 0.13368003611074458,
+  'qqqc': 0.2084629334782991,
+  'spy': 0.1516555435230748,
+  'tao': 0.09850164692171084,
+  'tlt': 0.04152855222401346,
+  'vcsh': 0.019335982488453272,
+  'vea': 0.08984207396660496,
+  'veu': 0.07772597904623,
+  'vwo': 0.05857614592172811,
+  'x2801hk': 0.11355895168837118,
+  'xcs6l': 0.11098024246204288,
+  'xpp': 0.16659750298848003,
+  'xx25l': 0.15810689656922366,
+  'yang': -0.41882968527313424,
+  'yao': 0.11294795111710924,
+  'yinn': 0.353880213326114},
+ 'avg_var': {'asipa': 16.421894772764954,
+  'bnd': 0.264741599579439,
+  'cemb': 1.881411798807229,
+  'chie': 16.790324999487645,
+  'chii': 21.025385502818438,
+  'chim': 41.86325083416213,
+  'chiq': 10.476716256523861,
+  'chix': 15.499041148348462,
+  'cny': 8.57444240526287,
+  'cqqq': 14.556485473076592,
+  'cxse': 12.270472076727392,
+  'cyb': 0.5843788073625686,
+  'dbc': 5.208591825055075,
+  'dsum': 1.029434288116483,
+  'ecns': 15.513383609251619,
+  'eem': 8.372532125549101,
+  'emhy': 1.3668367496318843,
+  'exxuf': 14.184818332659995,
+  'fxi': 12.595371829185359,
+  'gld': 6.26700826848892,
+  'gxc': 10.931263950589159,
+  'hao': 14.28885014397694,
+  'hyg': 0.9828400914287958,
+  'ief': 0.7712232751395579,
+  'iemg': 7.561956845007603,
+  'jnk': 0.942476796369568,
+  'lqd': 0.6733031874428864,
+  'pcy': 1.3629215306633,
+  'pek': 24.28576132273492,
+  'qqqc': 16.32704889961988,
+  'spy': 3.514838980229159,
+  'tao': 10.215803103673355,
+  'tlt': 3.981028871074591,
+  'vcsh': 0.07110165494679058,
+  'vea': 4.972207389542378,
+  'veu': 5.021066205294739,
+  'vwo': 8.203076749379198,
+  'x2801hk': 10.661391365867075,
+  'xcs6l': 11.551678848653106,
+  'xpp': 49.76764134495959,
+  'xx25l': 36.92696011447324,
+  'yang': 107.66009609624155,
+  'yao': 10.740684935397393,
+  'yinn': 107.24604302015942}}
+	etf_ret_var_df = pd.DataFrame.from_dict(etf_ret_var_dict)
+	print("Now I will show you a selection of ETF tailored to your profile")
+	
+	if risk_score <= 0.33:
+		etf_low = etf_ret_var_df[(etf_ret_var_df['avg_ret']<(rate*1.5)) & (etf_ret_var_df['avg_var']<1)]
+		etf_low_dict = etf_low.to_dict()
+		for cat, values in etf_low_dict.items():
+			if cat == 'avg_ret':
+				print(" \n Average return in the last 5 years")
+				for key in values:
+					print(key + ": {:0.2f}%".format(values[key]*100))
+			else:
+				print(" \n Average risk in the last 5 years (variance)")
+				for key in values:
+					print(key + ": {:0.2f}".format(values[key]))
+	
+	elif risk_score > 0.33 and risk_score <= 0.66:
+		etf_mid = etf_ret_var_df[(etf_ret_var_df['avg_ret']<(rate_mid*1.5)) & (etf_ret_var_df['avg_ret']>(rate_mid*0.5)) & (etf_ret_var_df['avg_var']<3) ]
+		etf_mid_dict = etf_mid.to_dict()
+		for cat, values in etf_mid_dict.items():
+			if cat == 'avg_ret':
+				print(" \n Average return in the last 5 years")
+				for key in values:
+					print(key + ": {:0.2f}%".format(values[key]*100))
+				
+			else:
+				print(" \n Average risk in the last 5 years (variance)")
+				for key in values:
+					print(key + ": {:0.2f}".format(values[key]))
+		
+	else:
+		etf_high = etf_ret_var_df[(etf_ret_var_df['avg_ret']>(rate_high*0.9))]
+		etf_high_dict = etf_high.to_dict()
+		for cat, values in etf_high_dict.items():
+			if cat == 'avg_ret':
+				print(" \n Average return in the last 5 years")
+				for key in values:
+					print(key + ": {:0.2f}%".format(values[key]*100))
+			else:
+				print(" \n Average risk in the last 5 years (variance)")
+				for key in values:
+					print(key + ": {:0.2f}".format(values[key]))
+	return 	
+
+import matplotlib.pyplot as plt
+alloc_list = []
+def AssetAlloc():
+	global alloc_list
+	
+	if risk_score <=0.33:
+		bond_alloc = 0.9
+		equity_alloc = 1-bond_alloc
+		
+	elif risk_score > 0.33 and risk_score <=0.66:
+		bond_alloc = 0.6
+		equity_alloc = 1-bond_alloc
+		
+	else:
+		bond_alloc = 0.2
+		equity_alloc = 1-bond_alloc
+		
+	alloc_list.append(bond_alloc)
+	alloc_list.append(equity_alloc)
+	return bond_alloc, equity_alloc, alloc_list
+	
+def AllocPie():
+
+	labels = 'Bond', 'Equity'
+	sizes = alloc_list
+	explode = (0,0)
+
+	fig1, ax1 = plt.subplots()
+	ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
+        shadow=True, startangle=90)
+	ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+	plt.show()
+	
+	
+	
+
+start()
+RiskWilligness()
+RiskCapability()
+RiskScore()
+InvGoals()
+InvDecision()
+OptimalEtf()
+AssetAlloc()
+AllocPie()
